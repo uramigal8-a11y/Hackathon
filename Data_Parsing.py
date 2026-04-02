@@ -1,5 +1,26 @@
+import os
 import pandas as pd
 from pymavlink import mavutil
+
+def get_latest_bin_file(folder_path):
+    # 1. Отримуємо список усіх файлів у папці
+    try:
+        files = [os.path.join(folder_path, f) for f in os.listdir(folder_path)]
+    except FileNotFoundError:
+        print(f"Помилка: Папка {folder_path} не існує.")
+        return None
+
+    # 2. Фільтруємо лише .BIN файли
+    bin_files = [f for f in files if f.upper().endswith('.BIN')]
+
+    if not bin_files:
+        print("У папці немає .BIN файлів.")
+        return None
+
+    # 3. Сортуємо файли за часом останньої зміни (найновіший буде першим)
+    bin_files.sort(key=os.path.getmtime, reverse=True)
+
+    return bin_files[0] # Повертаємо шлях до найсвіжішого файлу
 
 def parse_telemetry(file_path):
     mlog = mavutil.mavlink_connection(file_path)
@@ -45,12 +66,20 @@ def parse_telemetry(file_path):
     return df
 
 # --- ВИКОРИСТАННЯ ---
-file_name = "00000001.BIN" # Заміни на назву свого файлу
+# Визначаємо назву папки для результатів
+output_folder = "CVS_Files"
+# Вкажи назву папки, куди дашборд буде завантажувати файли
+folder_to_watch = "BIN_Files"
+# Додати ім'я файлу
+file_name = get_latest_bin_file(folder_to_watch) 
 try:
     telemetry_df = parse_telemetry(file_name)
     
-    # Зберігаємо результат у CSV для подальшого аналізу
-    telemetry_df.to_csv("processed_telemetry.csv", index=False)
+    # Використовуємо оригінальну назву файлу, щоб не плутатися
+    file_base_name = os.path.basename(file_name).split('.')[0]
+    output_path = os.path.join(output_folder, f"{file_base_name}.csv")
+
+    telemetry_df.to_csv(output_path, index=False)
 
 except FileNotFoundError:
     print(f"Помилка: Файл {file_name} не знайдено. Переконайся, що він у тій же папці.")
