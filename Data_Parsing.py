@@ -4,41 +4,12 @@ import pandas as pd
 from pymavlink import mavutil
 
 # --- НАЛАШТУВАННЯ ---
-
 SOURCE_FOLDER = "BIN_Files"
 OUTPUT_FOLDER = "CVS_Files"
-SIGNAL_FILE = "start.signal"
-HISTORY_FILE = "processed_history.txt"
-
-def get_unique_path(base_folder, filename):
-    name, ext = os.path.splitext(filename)
-    counter = 1
-    unique_path = os.path.join(base_folder, filename)
-
-    while os.path.exists(unique_path):
-        unique_path = os.path.join(base_folder, f"{name}({counter}){ext}")
-        counter += 1
-    return unique_path
-
-
-
-def get_first_bin_file(folder_path):
-    try:
-        files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.upper().endswith('.BIN')]
-
-        if not files:
-            return None
-
-        files.sort(key=os.path.getmtime)
-        return files[0]
-
-    except Exception as e:
-        print(f"Помилка пошуку: {e}")
-        return None
+OUTPUT_FILENAME = "result.csv"  # Одне фіксоване ім'я для всіх результатів
 
 def parse_telemetry(file_path):
     mlog = mavutil.mavlink_connection(file_path)
-    
     data = []
     try:
         while True:
@@ -49,59 +20,56 @@ def parse_telemetry(file_path):
                 msg_dict = msg.to_dict()
                 msg_dict['Type'] = msg.get_type()
                 data.append(msg_dict)
+    except Exception as e:
+        print(f"Помилка при читанні повідомлень: {e}")
     finally:
-        mlog.close()  
-        
+        mlog.close()
+    
     return pd.DataFrame(data)
 
-def main_loop():
-    if not os.path.exists(OUTPUT_FOLDER):
-        os.makedirs(OUTPUT_FOLDER)
+def main_watcher():
+    # Створюємо папки, якщо їх немає
+    if not os.path.exists(SOURCE_FOLDER): os.makedirs(SOURCE_FOLDER)
+    if not os.path.exists(OUTPUT_FOLDER): os.makedirs(OUTPUT_FOLDER)
 
-    print(f"Очікую '0' у {SIGNAL_FILE}...")
+    print(f"Моніторинг папки {SOURCE_FOLDER} розпочато...")
 
     try:
         while True:
-            if os.path.exists(SIGNAL_FILE):
-                with open(SIGNAL_FILE, 'r') as f:
-                    content = f.read().strip()
+            # Шукаємо всі .BIN файли
+            files = [f for f in os.listdir(SOURCE_FOLDER) if f.upper().endswith('.BIN')]
 
-                if content == "0":
-                    target_bin = get_first_bin_file(SOURCE_FOLDER)
+            for filename in files:
+                bin_path = os.path.join(SOURCE_FOLDER, filename)
+                csv_path = os.path.join(OUTPUT_FOLDER, OUTPUT_FILENAME)
 
-                    if target_bin:
-                        try:
-                            time.sleep(0.5)
-                            
-                            df = parse_telemetry(target_bin)
-                            bin_name = os.path.basename(target_bin)
-                            csv_name = bin_name.replace('.BIN', '.csv').replace('.bin', '.csv')
+                print(f"Обробка: {filename}...")
 
-                            final_output_path = get_unique_path(OUTPUT_FOLDER, csv_name)
+                try:
+                    # Даємо системі трохи часу завершити запис файлу, якщо він ще копіюється
+                    time.sleep(0.5)
 
-                            df.to_csv(final_output_path, index=False)
-
-                            # Записуємо в історію фінальну назву (з лічильником, якщо він був)
-                            actual_name_only = os.path.splitext(os.path.basename(final_output_path))[0]
-                            with open(HISTORY_FILE, 'a', encoding='utf-8') as history:
-                                history.write(f"{actual_name_only}\n")
-
-                            os.remove(target_bin)
-                            
-                            print(f"Оброблено: {bin_name} збережено як {actual_name_only}")
-
-                        except Exception as e:
-                            print(f"Помилка: {e}")
+                    # Конвертація
+                    df = parse_telemetry(bin_path)
+                    
+                    if not df.empty:
+                        df.to_csv(csv_path, index=False)
+                        print(f"Готово: {OUTPUT_FILENAME}")
                     else:
-                        print("Немає файлів для обробки.")
+                        print(f"Файл {filename} порожній або не містить GPS/IMU даних.")
 
-                    # Очищаємо сигнал
-                    with open(SIGNAL_FILE, 'w') as f: f.write("")
+                    # Видалення вхідного файлу
+                    os.remove(bin_path)
+                    print(f"Оригінал {filename} видалено.")
 
+                except Exception as e:
+                    print(f"Помилка при обробці {filename}: {e}")
+
+            # Пауза перед наступною перевіркою папки
             time.sleep(1)
 
     except KeyboardInterrupt:
-        print("\n🛑 Вихід.")
+        print("\nЗупинка моніторингу.")
 
 if __name__ == "__main__":
-    main_loop()
+    main_watcher()

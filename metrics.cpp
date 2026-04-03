@@ -145,7 +145,7 @@ int main() {
     SetConsoleOutputCP(65001);
     cout << "Обчислення метрик польоту БПЛА \n\n";
 
-    string filepath = "../Hackathon/CVS_Files/00000001.csv";
+    string filepath = "CVS_Files/result.csv";
 
     ifstream file(filepath);
     if (!file.is_open()) {
