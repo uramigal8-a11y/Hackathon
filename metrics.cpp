@@ -69,8 +69,8 @@ public:
         bool hasPrevGPS = false;
         double prevLat = 0.0, prevLon = 0.0, minAlt = 1e9, maxAlt = -1e9;
 
-        // Поріг чутливості (Deadzone), щоб прибрати тремтіння датчика
-        const double ACCEL_THRESHOLD = 0.15;
+        // Поріг чутливості (Deadzone), зменшений до 0.05 для збереження реальної динаміки
+        const double ACCEL_THRESHOLD = 0.05;
 
         for (const auto& p : points) {
             // --- GPS Частина (Дистанція та Висота) ---
@@ -90,7 +90,7 @@ public:
                 double curAy = p.ay - biasY;
                 double curAz = p.az - biasZ;
 
-                // Фільтруємо дрібний шум (якщо менше порога — вважаємо, що дрон стоїть)
+                // Фільтруємо дрібний шум (якщо менше порога — вважаємо, що прискорення немає)
                 if (abs(curAx) < ACCEL_THRESHOLD) curAx = 0;
                 if (abs(curAy) < ACCEL_THRESHOLD) curAy = 0;
                 if (abs(curAz) < ACCEL_THRESHOLD) curAz = 0;
@@ -103,10 +103,7 @@ public:
                         vy += (prevAy + curAy) / 2.0 * dt;
                         vz += (prevAz + curAz) / 2.0 * dt;
 
-                        // Маленька хитрість: якщо прискорення нульове, швидкість має згасати
-                        // Це запобігає нескінченному "дрейфу" швидкості
-                        if (curAx == 0 && curAy == 0) { vx *= 0.92; vy *= 0.92; }
-
+                        // Оновлюємо максимуми швидкостей
                         maxHorizontalSpeed = max(maxHorizontalSpeed, sqrt(vx * vx + vy * vy));
                         maxVerticalSpeed = max(maxVerticalSpeed, abs(vz));
                     }
