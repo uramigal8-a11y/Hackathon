@@ -11,10 +11,6 @@ SIGNAL_FILE = "start.signal"
 HISTORY_FILE = "processed_history.txt"
 
 def get_unique_path(base_folder, filename):
-    """
-    Перевіряє, чи існує файл. Якщо так — додає (1), (2) тощо.
-    Наприклад: log.csv -> log(1).csv
-    """
     name, ext = os.path.splitext(filename)
     counter = 1
     unique_path = os.path.join(base_folder, filename)
