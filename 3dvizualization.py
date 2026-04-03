@@ -16,7 +16,7 @@ import plotly.graph_objects as go
 
 pio.renderers.default = "colab"
 
-df = pd.read_csv('')
+df = pd.read_csv('clean_data.csv')
 fig = go.Figure(data=[go.Scatter3d(
     x=df['E'],
     y=df['N'],
