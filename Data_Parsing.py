@@ -9,6 +9,11 @@ OUTPUT_FOLDER = "CVS_Files"
 OUTPUT_FILENAME = "result.csv"  # Одне фіксоване ім'я для всіх результатів
 
 def parse_telemetry(file_path):
+    # Ігноруємо системні файли macOS
+    if os.path.basename(file_path).startswith('._'):
+        print("Пропущено системний файл macOS")
+        return pd.DataFrame()
+
     mlog = mavutil.mavlink_connection(file_path)
     data = []
     try:
@@ -21,11 +26,13 @@ def parse_telemetry(file_path):
                 msg_dict['Type'] = msg.get_type()
                 data.append(msg_dict)
     except Exception as e:
-        print(f"Помилка при читанні повідомлень: {e}")
+        print(f"Помилка при читанні: {e}")
     finally:
         mlog.close()
     
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    print(f"Знайдено записів: {len(df)}") # Це допоможе вам у відладці
+    return df
 
 def main_watcher():
     # Створюємо папки, якщо їх немає
