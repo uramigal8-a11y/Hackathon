@@ -181,7 +181,7 @@ int main() {
         try {
             stringstream ss(line);
             vector<string> cols;
-            string token;
+             string token;
             while (getline(ss, token, ',')) cols.push_back(token);
 
             if (cols.size() < 2) continue;
