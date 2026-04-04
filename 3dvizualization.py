@@ -16,11 +16,11 @@ import plotly.graph_objects as go
 
 pio.renderers.default = "colab"
 
-df = pd.read_csv('clean_data.csv')
+df = pd.read_csv('CVS_Files/clean_data.csv')
 fig = go.Figure(data=[go.Scatter3d(
-    x=df['E'],
-    y=df['N'],
-    z=df['U'],
+    x=df['x'],
+    y=df['y'],
+    z=df['z'],
     mode='lines',
     line=dict(
         width=6,

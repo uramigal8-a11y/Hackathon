@@ -162,8 +162,8 @@ int main() {
     SetConsoleOutputCP(65001); // Для підтримки кирилиці в консолі
 
     // --- ЦЕ НАЙВАЖЛИВІШІ ЗМІНИ ШЛЯХІВ ---
-    string inputPath = "result.csv";   // Файл, який створює Python
-    string out3DPath = "clean_data.csv"; // Файл, який ми віддаємо назад Python
+    string inputPath = "CVS_Files/result.csv";   // Файл, який створює Python
+    string out3DPath = "CVS_Files/clean_data.csv"; // Файл, який ми віддаємо назад Python
     // ------------------------------------
 
     ifstream file(inputPath);
