@@ -220,6 +220,25 @@ int main() {
     cout << "Макс. набір висоти (GPS)      : " << fm.getMaxAltitudeGain() << " м\n";
     cout << "Загальна дистанція (GPS)      : " << fm.getTotalDistance() << " м\n";
 
-    fm.exportFor3D(out3DPath);
-    return 0;
+fm.exportFor3D(out3DPath);
+
+    // --- ВСТАВЛЯЙ ЦЕЙ БЛОК СЮДИ ---
+    
+    // 1. Записуємо цифри у файл, щоб Python міг їх прочитати
+    ofstream ai_file("CVS_Files/ai_summary.txt");
+    if (ai_file.is_open()) {
+        ai_file << fm.getFlightDuration() << endl;
+        ai_file << fm.getMaxHorizontalSpeed() << endl;
+        ai_file << fm.getMaxAcceleration() << endl;
+        ai_file << fm.getTotalDistance() << endl;
+        ai_file << fm.getMaxAltitudeGain() << endl;
+        ai_file.close();
+    }
+
+    // 2. Викликаємо Python. 
+    // Я замінив "python" на "py", бо на твоему минулому скріншоті система не впізнала "python"
+    cout << "\n>>> Zapusk SHI-analizu rezul'tativ..." << endl;
+    system("c:/Users/Olexiy/Hackathon/.venv/Scripts/python.exe ai_analysis.py");
+
+    // --- КІНЕЦЬ БЛОКУ ---
 }
