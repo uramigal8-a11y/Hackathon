@@ -10,11 +10,11 @@
 
 using namespace std;
 
-// Структура для зберігання однієї точки даних (Твій оригінал)
+// Структура для зберігання однієї точки даних
 struct FlightPoint {
     double timestamp = 0.0;
     double lat = 0.0, lon = 0.0, alt = 0.0;
-    double spd = 0.0; 
+    double spd = 0.0; // Швидкість по GPS
     double ax = 0.0, ay = 0.0, az = 0.0;
     bool hasGPS = false;
     bool hasIMU = false;
@@ -140,21 +140,6 @@ public:
         out.close();
     }
 
-    // НОВА ФУНКЦІЯ (Додана до оригіналу для роботи ШІ)
-    void saveReportForAI(const string& filepath) {
-        ofstream out(filepath);
-        if (!out.is_open()) return;
-        out << fixed << setprecision(3);
-        out << "РЕЗУЛЬТАТИ АНАЛІЗУ БПЛА\n";
-        out << "Тривалість польоту            : " << flightDuration << " сек\n";
-        out << "Макс. горизонтальна швидкість : " << maxHorizontalSpeed << " м/с\n";
-        out << "Макс. вертикальна швидкість   : " << maxVerticalSpeed << " м/с\n";
-        out << "Макс. прискорення             : " << maxAcceleration << " м/с²\n";
-        out << "Макс. набір висоти (GPS)      : " << maxAltitudeGain << " м\n";
-        out << "Загальна дистанція (GPS)      : " << totalDistance << " м\n";
-        out.close();
-    }
-
     double getMaxHorizontalSpeed() const { return maxHorizontalSpeed; }
     double getMaxVerticalSpeed()   const { return maxVerticalSpeed; }
     double getMaxAcceleration()    const { return maxAcceleration; }
@@ -174,46 +159,67 @@ private:
 };
 
 int main() {
-    SetConsoleOutputCP(65001);
+    SetConsoleOutputCP(65001); // Для підтримки кирилиці в консолі
 
-    string inputPath = "CVS_Files/result.csv";
-    string out3DPath = "CVS_Files/clean_data.csv";
-    string outAIPath = "CVS_Files/ai_input.txt"; // Шлях для ШІ
+    // --- ЦЕ НАЙВАЖЛИВІШІ ЗМІНИ ШЛЯХІВ ---
+    string inputPath = "CVS_Files/result.csv";   // Файл, який створює Python
+    string out3DPath = "CVS_Files/clean_data.csv"; // Файл, який ми віддаємо назад Python
+    // ------------------------------------
 
     ifstream file(inputPath);
-    if (!file.is_open()) return 1;
+    if (!file.is_open()) {
+        cout << "Помилка: Не знайдено файл result.csv поруч із metrics.exe!\n";
+        return 1;
+    }
 
     vector<FlightPoint> data;
-    string line; getline(file, line);
+    string line;
+    getline(file, line); // Пропуск заголовка
 
     while (getline(file, line)) {
         if (line.empty()) continue;
-        stringstream ss(line);
-        vector<string> cols; string token;
-        while (getline(ss, token, ',')) cols.push_back(token);
+        try {
+            stringstream ss(line);
+            vector<string> cols;
+             string token;
+            while (getline(ss, token, ',')) cols.push_back(token);
 
-        if (cols.size() < 2) continue;
-        FlightPoint p;
-        p.timestamp = stod(cols[1]) / 1000000.0;
+            if (cols.size() < 2) continue;
+            string type = cols[0];
+            FlightPoint p;
+            p.timestamp = stod(cols[1]) / 1000000.0;
 
-        if (cols[0] == "IMU" && cols.size() >= 9) {
-            p.ax = stod(cols[6]); p.ay = stod(cols[7]); p.az = stod(col[8]);
-            p.hasIMU = true; data.push_back(p);
+            if (type == "IMU" && cols.size() >= 9) {
+                p.ax = stod(cols[6]); p.ay = stod(cols[7]); p.az = stod(cols[8]);
+                p.hasIMU = true; data.push_back(p);
+            }
+            else if (type == "GPS" && cols.size() >= 26) {
+                p.lat = stod(cols[22]); p.lon = stod(cols[23]);
+                p.alt = stod(cols[24]); p.spd = stod(cols[25]);
+                p.hasGPS = true; data.push_back(p);
+            }
         }
-        else if (cols[0] == "GPS" && cols.size() >= 26) {
-            p.lat = stod(cols[22]); p.lon = stod(cols[23]);
-            p.alt = stod(cols[24]); p.spd = stod(cols[25]);
-            p.hasGPS = true; data.push_back(p);
-        }
+        catch (...) { continue; }
     }
     file.close();
+
+    if (data.empty()) {
+        cout << "Помилка: result.csv порожній або має невірний формат.\n";
+        return 0;
+    }
 
     FlightMetrics fm(data);
     fm.calculateAllMetrics();
 
-    // ЗБЕРЕЖЕННЯ ФАЙЛІВ
-    fm.exportFor3D(out3DPath);
-    fm.saveReportForAI(outAIPath); // ТЕПЕР ФАЙЛ БУДЕ СТВОРЕНО
+    cout << fixed << setprecision(3);
+    cout << "РЕЗУЛЬТАТИ АНАЛІЗУ БПЛА\n";
+    cout << "Тривалість польоту            : " << fm.getFlightDuration() << " сек\n";
+    cout << "Макс. горизонтальна швидкість : " << fm.getMaxHorizontalSpeed() << " м/с\n";
+    cout << "Макс. вертикальна швидкість   : " << fm.getMaxVerticalSpeed() << " м/с\n";
+    cout << "Макс. прискорення             : " << fm.getMaxAcceleration() << " м/с²\n";
+    cout << "Макс. набір висоти (GPS)      : " << fm.getMaxAltitudeGain() << " м\n";
+    cout << "Загальна дистанція (GPS)      : " << fm.getTotalDistance() << " м\n";
 
+    fm.exportFor3D(out3DPath);
     return 0;
 }
