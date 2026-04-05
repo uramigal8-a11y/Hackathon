@@ -7,7 +7,9 @@ import plotly.graph_objects as go
 
 pio.renderers.default = "colab"
 
-df = pd.read_csv('clean_data.csv')
+def create_3d_plot(file_path):
+    
+    df = pd.read_csv(file_path)
 df.columns = df.columns.str.strip()
 fig = go.Figure(data=[go.Scatter3d(
     x=df['x'],
