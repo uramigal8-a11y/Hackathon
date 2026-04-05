@@ -30,7 +30,7 @@
 ## Використання
 Запустіть проект за допомогою:
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 ## Структура проекту
