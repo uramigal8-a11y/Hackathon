@@ -212,7 +212,7 @@ int main() {
     fm.calculateAllMetrics();
 
     cout << fixed << setprecision(3);
-    cout << "=== РЕЗУЛЬТАТИ АНАЛІЗУ БПЛА ===\n";
+    cout << "РЕЗУЛЬТАТИ АНАЛІЗУ БПЛА\n";
     cout << "Тривалість польоту            : " << fm.getFlightDuration() << " сек\n";
     cout << "Макс. горизонтальна швидкість : " << fm.getMaxHorizontalSpeed() << " м/с\n";
     cout << "Макс. вертикальна швидкість   : " << fm.getMaxVerticalSpeed() << " м/с\n";

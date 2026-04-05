@@ -21,10 +21,10 @@ if uploaded_file:
         st.stop()
 
     st.divider()
-    col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1.3, 2])
 
     with col1:
-        st.subheader("Результати (C++)")
+        st.subheader("Результати обчислень")
         if os.path.exists("metrics.exe"):
             try:
                 process = subprocess.run(['metrics.exe'], capture_output=True, text=True, encoding='utf-8')
