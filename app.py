@@ -6,7 +6,7 @@ from visualization3d import create_3d_plot
 from ai_assistant import analyze_flight_data
 
 st.set_page_config(page_title="Drone Analysis System", layout="wide")
-st.title("🛸 Drone Telemetry Analysis & AI")
+st.title(" Drone Telemetry Analysis & AI")
 
 # Створення папок при запуску
 if not os.path.exists(OUTPUT_FOLDER):
@@ -27,9 +27,9 @@ if uploaded_file:
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.subheader("📊 Метрики та ШІ")
+        st.subheader(" Метрики та ШІ")
         
-        if st.button("🚀 Розрахувати фізику (metrics.exe)"):
+        if st.button(" Розрахувати фізику (metrics.exe)"):
             if os.path.exists("metrics.exe"):
                 try:
                     with st.spinner('EXE обчислює дані...'):
@@ -53,13 +53,13 @@ if uploaded_file:
         if 'metrics_text' in st.session_state:
             st.text_area("Звіт аналізатора:", st.session_state.metrics_text, height=200)
             
-            if st.button("🤖 Сформувати ШІ-висновок"):
+            if st.button(" Сформувати ШІ-висновок"):
                 with st.spinner('ШІ аналізує політ...'):
                     ai_report = analyze_flight_data({"console_output": st.session_state.metrics_text})
                     st.info(ai_report)
 
     with col2:
-        st.subheader("🌐 3D Візуалізація")
+        st.subheader(" 3D Візуалізація")
         path_3d = os.path.join(OUTPUT_FOLDER, "clean_data.csv")
         if os.path.exists(path_3d):
             fig = create_3d_plot(path_3d)
