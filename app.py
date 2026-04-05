@@ -8,7 +8,7 @@ from Data_Parsing import process_uploaded_file, OUTPUT_FOLDER
 from visualization3d import create_3d_plot 
 
 st.set_page_config(page_title="Drone Analysis", layout="wide")
-st.title("🚁 Drone Telemetry Analysis")
+st.title("Drone Telemetry Analysis")
 
 uploaded_file = st.file_uploader("Виберіть файл .BIN", type="bin")
 
@@ -24,7 +24,7 @@ if uploaded_file:
     col1, col2 = st.columns([1, 2])
 
     with col1:
-        st.subheader("📊 Результати (C++)")
+        st.subheader("Результати (C++)")
         if os.path.exists("metrics.exe"):
             try:
                 process = subprocess.run(['metrics.exe'], capture_output=True, text=True, encoding='utf-8')
@@ -40,7 +40,7 @@ if uploaded_file:
                 
                 if found:
                     with col2:
-                        st.subheader("📍 3D Візуалізація")
+                        st.subheader("3D Візуалізація")
                         # Передаємо тільки шлях, ніякого pandas тут
                         fig = create_3d_plot(clean_data_path)
                         st.plotly_chart(fig, use_container_width=True)
